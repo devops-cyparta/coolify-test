@@ -1,0 +1,64 @@
+services:
+  django:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: django_local:latest
+    container_name: django_local
+    volumes:
+      - /root/logs:/app/logs # Mount a directory for logs
+      - .:/app # Mount the project folder to the container
+      - ./.env:/app/.env:ro # Mount .env file into the container with read-only permission
+    restart: always
+    ports:
+      - "9000:9000"
+    environment:
+      ENV_FILE: /app/.env
+      DOMAIN_NAME: "localhost"
+      MYSQL_ROOT_PASSWORD: Cyparta1234567890%
+      MYSQL_USER: root
+      MYSQL_PASSWORD: Cyparta1234567890%
+      MYSQL_HOST: db
+      MYSQL_PORT: 3306
+    
+    depends_on:
+      - db
+    network_mode: "host" 
+    
+    #command: ["gunicorn", "--bind", "0.0.0.0:9000", "hasanat.wsgi:application"]
+
+
+
+  db:
+    image: mysql:8.0
+    container_name: mysql_local
+    environment:
+      MYSQL_ROOT_PASSWORD: Cyparta1234567890%
+      MYSQL_DATABASE: cybercube
+      MYSQL_USER: root
+      MYSQL_PASSWORD: Cyparta1234567890%
+    ports:
+      - "3306:3306"
+    volumes:
+      - /root/mysql/my.cnf:/etc/mysql/mysql.conf.d/mysqld.cnf:ro
+      - /root/mysql/data:/var/lib/mysql
+      - /root/mysql/logs:/var/log/mysql  # Persist MySQL data on host
+    restart: always
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx_local
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf/:/etc/nginx/conf.d/
+    environment:
+      - DOMAIN_NAME=${DOMAIN_NAME}
+    restart: always
+    network_mode: "host"
+    depends_on:
+      - django
+
+volumes:
+  mysql_data:

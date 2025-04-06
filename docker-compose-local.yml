@@ -1,0 +1,66 @@
+services:
+  django:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: django_local:latest
+    container_name: django_local
+    volumes:
+      - /root/logs:/app/logs # Mount a directory for logs
+      - .:/app # Mount the project folder to the container
+      - /root/.env:/app/.env:ro # Mount .env file into the container with read-only permission
+    restart: always
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env.local
+      - .env  # Fallback to a general .env file
+    environment:
+      DOMAIN_NAME: localhost
+      MYSQL_DATABASE: localdb
+      MYSQL_USER: user
+      MYSQL_PASSWORD: 123
+      MYSQL_HOST: db
+      MYSQL_PORT: 3306
+      
+    depends_on:
+      - db
+      - redis
+    
+    command: ["gunicorn", "--bind", "0.0.0.0:8000", "hasanat.wsgi:application"]
+
+
+
+  db:
+    image: mysql:8.0
+    container_name: mysql_local
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 123
+      MYSQL_DATABASE: localdb
+      MYSQL_USER: user
+      MYSQL_PASSWORD: 123
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  redis:
+    image: redis:latest
+    container_name: redis_local
+    restart: always
+    ports:
+      - "6379:6379"
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx_local
+    ports:
+      - "8081:80"
+    volumes:
+      - ./nginx/conf/local.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - django
+
+volumes:
+  mysql_data:
