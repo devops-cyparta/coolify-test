@@ -8,57 +8,55 @@ services:
     volumes:
       - /root/logs:/app/logs # Mount a directory for logs
       - .:/app # Mount the project folder to the container
-      - /root/.env:/app/.env:ro # Mount .env file into the container with read-only permission
+      - ./.env:/app/.env:ro # Mount .env file into the container with read-only permission
     restart: always
     ports:
-      - "8000:8000"
-    env_file:
-      - .env.local
-      - .env  # Fallback to a general .env file
+      - "9000:9000"
     environment:
-      DOMAIN_NAME: localhost
-      MYSQL_DATABASE: localdb
-      MYSQL_USER: user
-      MYSQL_PASSWORD: 123
+      ENV_FILE: /app/.env
+      DOMAIN_NAME: "localhost"
+      MYSQL_ROOT_PASSWORD: Cyparta1234567890%
+      MYSQL_USER: root
+      MYSQL_PASSWORD: Cyparta1234567890%
       MYSQL_HOST: db
       MYSQL_PORT: 3306
-      
+    
     depends_on:
       - db
-      - redis
+    network_mode: "host" 
     
-    command: ["gunicorn", "--bind", "0.0.0.0:8000", "hasanat.wsgi:application"]
+    #command: ["gunicorn", "--bind", "0.0.0.0:9000", "hasanat.wsgi:application"]
 
 
 
   db:
     image: mysql:8.0
     container_name: mysql_local
-    restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: 123
-      MYSQL_DATABASE: localdb
-      MYSQL_USER: user
-      MYSQL_PASSWORD: 123
+      MYSQL_ROOT_PASSWORD: Cyparta1234567890%
+      MYSQL_DATABASE: cybercube
+      MYSQL_USER: root
+      MYSQL_PASSWORD: Cyparta1234567890%
     ports:
       - "3306:3306"
     volumes:
-      - mysql_data:/var/lib/mysql
-
-  redis:
-    image: redis:latest
-    container_name: redis_local
+      - /root/mysql/my.cnf:/etc/mysql/mysql.conf.d/mysqld.cnf:ro
+      - /root/mysql/data:/var/lib/mysql
+      - /root/mysql/logs:/var/log/mysql  # Persist MySQL data on host
     restart: always
-    ports:
-      - "6379:6379"
 
   nginx:
     image: nginx:latest
     container_name: nginx_local
     ports:
-      - "8081:80"
+      - "80:80"
+      - "443:443"
     volumes:
-      - ./nginx/conf/local.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx/conf/:/etc/nginx/conf.d/
+    environment:
+      - DOMAIN_NAME=${DOMAIN_NAME}
+    restart: always
+    network_mode: "host"
     depends_on:
       - django
 
