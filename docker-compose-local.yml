@@ -8,7 +8,7 @@ services:
     volumes:
       - /root/logs:/app/logs # Mount a directory for logs
       - .:/app # Mount the project folder to the container
-      - /root/.env:/app/.env:ro # Mount .env file into the container with read-only permission
+      - /home/muhammad/Documents/github-projects-tests/cyber-cube/.env:/app/.env:ro # Mount .env file into the container with read-only permission
     restart: always
     ports:
       - "9000:9000"
